@@ -1,0 +1,905 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+<Script file="BattleHerald_WorldFrame.lua"/>
+
+	<Frame name="BattleHerald_BGTemplate" virtual="true" movable="true">
+		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background-Dark.blp" edgeFile="Interface\DialogFrame\UI-DialogBox-Gold-Border.blp">
+			<BackgroundInsets left="8" right="8" top="8" bottom="8"/>
+			<EdgeSize val="24"/>
+		</Backdrop>
+		<Scripts>
+			<OnDragStart>
+				BattleHerald_StartWorldFrameDragging();
+			</OnDragStart>
+			<OnDragStop>
+				BattleHerald_StopWorldFrameDragging();
+			</OnDragStop>
+		</Scripts>
+	</Frame>
+	<Button name="BattleHerald_CTFFlagIcon" virtual="true">
+	    <Size x="26" y="26"/>
+	    <Scripts>
+	        <OnEnter>
+	            if (self.tooltip) then
+	                GameTooltip:ClearLines();
+	                GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT");
+	                GameTooltip:AddLine(self.tooltip);
+	                GameTooltip:Show();
+	            end
+	        </OnEnter>
+	        <OnLeave>
+	            GameTooltip:Hide();
+	        </OnLeave>
+	    </Scripts>
+	</Button>
+	
+	<Button name="BattleHerald_POIButton" virtual="true">
+		<Size x="16" y="16"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="$parent_Icon" setAllPoints="true" file="Interface\MINIMAP\POIICONS.blp"/>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>self:RegisterEvent("WORLD_MAP_UPDATE");</OnLoad>
+			<OnEvent>
+				for i = 1, GetNumMapLandmarks() do
+					local name, desc, tex = GetMapLandmarkInfo(i);
+					if (name == self.watch) then
+						-- Update this POI
+						local x1, x2, y1, y2 = WorldMap_GetPOITextureCoords(tex);
+						_G[self:GetName().."_Icon"]:SetTexCoord(x1, x2, y1, y2);
+						break;
+					end
+				end
+			</OnEvent>
+			<OnEnter>
+				GameTooltip:ClearLines();
+				GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT");
+				GameTooltip:AddLine(self.watch);
+				GameTooltip:Show();
+			</OnEnter>
+			<OnLeave>
+				GameTooltip:Hide();
+			</OnLeave>
+		</Scripts>
+	</Button>
+
+	<Frame name="BattleHerald_CTFWorldFrame" parent="UIParent" hidden="true" inherits="BattleHerald_BGTemplate" enableKeyboard="false" enableMouse="false">
+		<Size x="170" y="118"/>
+		<Anchors>
+			<Anchor point="TOP">
+				<Offset x="0" y="12"/>
+			</Anchor>
+		</Anchors>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="$parent_AllianceIcon" file="Interface\PVPFrame\PVPCurrency-Conquest-Alliance.blp">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT">
+							<Offset x="-4" y="34"/>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<Texture name="$parent_HordeIcon" file="Interface\PVPFrame\PVPCurrency-Conquest-Horde.blp">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT">
+							<Offset x="-4" y="34"/>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString name="$parent_VSText" inherits="GameFontHighlightLarge" justifyH="CENTER" text="VS.">
+					<Anchors>
+						<Anchor point="BOTTOM">
+							<Offset x="0" y="61"/>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parent_GoalText" inherits="GameFontHighlightSmall" justifyH="CENTER" text="First to 3">
+					<Anchors>
+						<Anchor point="TOP" relativeTo="$parent_VSText" relativePoint="BOTTOM"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		
+		<Frames>
+			<Button name="$parent_AllianceFlagIcon" inherits="BattleHerald_CTFFlagIcon">
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" relativeTo="$parent_HordeIcon" relativePoint="TOPLEFT">
+						<Offset x="20" y="-19"/>
+					</Anchor>
+				</Anchors>
+				<Layers>
+				    <Layer level="ARTWORK">
+				        <Texture file="Interface\WorldStateFrame\AllianceFlag.blp" setAllPoints="true"/>
+				        <Texture name="$parentFlash" file="Interface\WorldStateFrame\AllianceFlagFlash.blp" alphaMode="ADD" setAllPoints="true">
+					        <Animations>
+						        <AnimationGroup parentKey="flash" looping="BOUNCE">
+							        <Alpha change="-1.0" duration="0.65" order="1"/>
+						        </AnimationGroup>
+					        </Animations>
+				        </Texture>
+				    </Layer>
+				</Layers>
+			</Button>
+			<Button name="$parent_HordeFlagIcon" inherits="BattleHerald_CTFFlagIcon">
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" relativeTo="$parent_AllianceIcon" relativePoint="TOPRIGHT">
+						<Offset x="-12" y="-19"/>
+					</Anchor>
+				</Anchors>
+				<Layers>
+				    <Layer level="ARTWORK">
+    				    <Texture file="Interface\WorldStateFrame\HordeFlag.blp" setAllPoints="true"/>
+				        <Texture name="$parentFlash" file="Interface\WorldStateFrame\HordeFlagFlash.blp" alphaMode="ADD" setAllPoints="true">
+					        <Animations>
+						        <AnimationGroup parentKey="flash" looping="BOUNCE">
+							        <Alpha change="-1.0" duration="0.65" order="1"/>
+						        </AnimationGroup>
+					        </Animations>
+				        </Texture>
+    				</Layer>
+				</Layers>
+			</Button>
+			<StatusBar name="$parent_Timer" drawLayer="ARTWORK" minValue="0" maxValue="1500" defaultValue="800">
+				<Size x="175" y="42"/>
+				<Anchors>
+					<Anchor point="BOTTOM">
+						<Offset x="0" y="4"/>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<Texture name="$parent_TimerBorder" file="Interface\UNITPOWERBARALT\MetalGold_Horizontal_Frame.blp">
+							<Size x="175" y="42"/>
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</Texture>
+						<FontString name="$parent_Text" inherits="GameFontHighlightSmall" justifyH="CENTER" text="12:25">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				<BarTexture file="Interface\UNITPOWERBARALT\Generic1_Horizontal_Fill.blp"/>
+				<BarColor r="0.6" g="0.3" b="0.3"/>
+				<Scripts>
+					<OnUpdate>
+						BattleHerald_UpdateCTFTimer(self, elapsed);
+					</OnUpdate>
+				</Scripts>
+			</StatusBar>
+			<Frame name="$parent_AllianceFrame" inherits="BattleHerald_BGTemplate">
+				<Size x="64" y="42"/>
+				<Anchors>
+					<Anchor point="RIGHT" relativePoint="LEFT">
+						<Offset x="11" y="8"/>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString name="$parent_Text"  inherits="GameFontHighlightLarge" justifyH="CENTER" text="0">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+			<Frame name="$parent_HordeFrame" inherits="BattleHerald_BGTemplate">
+				<Size x="64" y="42"/>
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT">
+						<Offset x="-11" y="8"/>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString name="$parent_Text"  inherits="GameFontHighlightLarge" justifyH="CENTER" text="0">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+		</Frames>
+		
+		<Scripts>
+			<OnLoad>
+			    self:RegisterEvent("UPDATE_WORLD_STATES");
+			    self:RegisterEvent("PLAYER_ENTERING_BATTLEGROUND");
+			    
+			    BattleHerald_SetTriggerHandler("ALLIANCE_FLAG_TAKEN", BattleHerald_WorldFrameAllianceFlagTaken);
+			    BattleHerald_SetTriggerHandler("HORDE_FLAG_TAKEN", BattleHerald_WorldFrameHordeFlagTaken);			    
+			</OnLoad>
+			<OnShow>
+			    if (event == "PLAYER_ENTERING_BATTLEGROUND") then
+			        BattleHerald_CTFWorldFrame_AllianceFlagIcon.tooltip = nil;
+			        BattleHerald_CTFWorldFrame_HordeFlagIcon.tooltip = nil;
+			    else 
+			        self:RegisterForDrag("LeftButton");
+				    BattleHerald_CTFEvent(self, "UPDATE_WORLD_STATES");
+				end
+			</OnShow>
+			<OnEvent>
+				if (BattleHerald_IsCTFActive()) then
+					BattleHerald_CTFEvent(self, event);
+				end
+			</OnEvent>
+		</Scripts>
+	</Frame>
+	<Frame name="BattleHerald_ABWorldFrame" parent="UIParent" hidden="true" inherits="BattleHerald_BGTemplate" enableKeyboard="false" enableMouse="false">
+		<Size x="170" y="100"/>
+		<Anchors>
+			<Anchor point="TOP">
+				<Offset x="0" y="12"/>
+			</Anchor>
+		</Anchors>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="$parent_AllianceIcon" file="Interface\PVPFrame\PVPCurrency-Conquest-Alliance.blp">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT">
+							<Offset x="-4" y="29"/>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<Texture name="$parent_HordeIcon" file="Interface\PVPFrame\PVPCurrency-Conquest-Horde.blp">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT">
+							<Offset x="-0" y="29"/>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString name="$parent_VSText" inherits="GameFontHighlightLarge" justifyH="CENTER" text="VS.">
+					<Anchors>
+						<Anchor point="BOTTOM">
+							<Offset x="0" y="57"/>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parent_GoalText" inherits="GameFontHighlightSmall" justifyH="CENTER" text="First to 1600">
+					<Anchors>
+						<Anchor point="TOP" relativeTo="$parent_VSText" relativePoint="BOTTOM"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		
+		<Frames>
+			<Button name="$parent_POIStables" inherits="BattleHerald_POIButton">
+				<Anchors>
+					<Anchor point="BOTTOM">
+						<Offset x="-40" y="16"/>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="$parent_POILumbermill" inherits="BattleHerald_POIButton">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parent_POIStables" relativePoint="RIGHT">
+						<Offset x="4" y="0"/>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="$parent_POIBlacksmith" inherits="BattleHerald_POIButton">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parent_POILumbermill" relativePoint="RIGHT">
+						<Offset x="4" y="0"/>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="$parent_POIMine" inherits="BattleHerald_POIButton">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parent_POIBlacksmith" relativePoint="RIGHT">
+						<Offset x="4" y="0"/>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="$parent_POIFarm" inherits="BattleHerald_POIButton">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parent_POIMine" relativePoint="RIGHT">
+						<Offset x="4" y="0"/>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Frame name="$parent_AllianceFrame" inherits="BattleHerald_BGTemplate">
+				<Size x="74" y="42"/>
+				<Anchors>
+					<Anchor point="RIGHT" relativePoint="LEFT">
+						<Offset x="11" y="8"/>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString name="$parent_Text"  inherits="GameFontHighlightLarge" justifyH="CENTER" text="1600">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+			<Frame name="$parent_HordeFrame" inherits="BattleHerald_BGTemplate">
+				<Size x="74" y="42"/>
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT">
+						<Offset x="-11" y="8"/>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString name="$parent_Text"  inherits="GameFontHighlightLarge" justifyH="CENTER" text="1600">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+		</Frames>
+		
+		<Scripts>
+			<OnLoad>
+				BattleHerald_ABWorldFrame_POIStables.watch = BHSTR_STABLES;
+				BattleHerald_ABWorldFrame_POILumbermill.watch = BHSTR_LUMBER_MILL;
+				BattleHerald_ABWorldFrame_POIBlacksmith.watch = BHSTR_BLACKSMITH;
+				BattleHerald_ABWorldFrame_POIMine.watch = BHSTR_GOLD_MINE;
+				BattleHerald_ABWorldFrame_POIFarm.watch = BHSTR_FARM;
+			
+				self:RegisterEvent("UPDATE_WORLD_STATES");
+			</OnLoad>
+			<OnShow>
+				self:RegisterForDrag("LeftButton");
+				BattleHerald_ABEvent(self, "UPDATE_WORLD_STATES");
+			</OnShow>
+			<OnEvent>
+				if (BattleHerald_IsABActive()) then
+					BattleHerald_ABEvent(self, event);
+				end
+			</OnEvent>
+		</Scripts>
+	</Frame>
+	<Frame name="BattleHerald_EOTSWorldFrame" parent="UIParent" hidden="true" inherits="BattleHerald_BGTemplate" enableKeyboard="false" enableMouse="false">
+		<Size x="170" y="100"/>
+		<Anchors>
+			<Anchor point="TOP">
+				<Offset x="0" y="12"/>
+			</Anchor>
+		</Anchors>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="$parent_AllianceIcon" file="Interface\PVPFrame\PVPCurrency-Conquest-Alliance.blp">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT">
+							<Offset x="-4" y="29"/>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<Texture name="$parent_HordeIcon" file="Interface\PVPFrame\PVPCurrency-Conquest-Horde.blp">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT">
+							<Offset x="-0" y="29"/>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString name="$parent_VSText" inherits="GameFontHighlightLarge" justifyH="CENTER" text="VS.">
+					<Anchors>
+						<Anchor point="BOTTOM">
+							<Offset x="0" y="57"/>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parent_GoalText" inherits="GameFontHighlightSmall" justifyH="CENTER" text="First to 1600">
+					<Anchors>
+						<Anchor point="TOP" relativeTo="$parent_VSText" relativePoint="BOTTOM"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		
+		<Frames>
+			<Button name="$parent_POIDraeneiRuins" inherits="BattleHerald_POIButton">
+				<Anchors>
+					<Anchor point="BOTTOM">
+						<Offset x="-32" y="16"/>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="$parent_POIMageTower" inherits="BattleHerald_POIButton">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parent_POIDraeneiRuins" relativePoint="RIGHT">
+						<Offset x="4" y="0"/>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="$parent_POIFelReaverRuins" inherits="BattleHerald_POIButton">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parent_POIMageTower" relativePoint="RIGHT">
+						<Offset x="4" y="0"/>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="$parent_POIBloodElfTower" inherits="BattleHerald_POIButton">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parent_POIFelReaverRuins" relativePoint="RIGHT">
+						<Offset x="4" y="0"/>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Frame name="$parent_AllianceFrame" inherits="BattleHerald_BGTemplate">
+				<Size x="74" y="42"/>
+				<Anchors>
+					<Anchor point="RIGHT" relativePoint="LEFT">
+						<Offset x="11" y="8"/>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString name="$parent_Text"  inherits="GameFontHighlightLarge" justifyH="CENTER" text="1600">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+			<Frame name="$parent_HordeFrame" inherits="BattleHerald_BGTemplate">
+				<Size x="74" y="42"/>
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT">
+						<Offset x="-11" y="8"/>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString name="$parent_Text"  inherits="GameFontHighlightLarge" justifyH="CENTER" text="1600">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+		</Frames>
+		
+		<Scripts>
+			<OnLoad>
+				BattleHerald_EOTSWorldFrame_POIDraeneiRuins.watch = BHSTR_DRAENEI_RUINS;
+				BattleHerald_EOTSWorldFrame_POIMageTower.watch = BHSTR_MAGE_TOWER;
+				BattleHerald_EOTSWorldFrame_POIFelReaverRuins.watch = BHSTR_FEL_REAVER_RUINS;
+				BattleHerald_EOTSWorldFrame_POIBloodElfTower.watch = BHSTR_BLOOD_ELF_TOWER;
+			
+				self:RegisterEvent("UPDATE_WORLD_STATES");
+			</OnLoad>
+			<OnShow>
+				self:RegisterForDrag("LeftButton");
+				BattleHerald_EOTSEvent(self, "UPDATE_WORLD_STATES");
+			</OnShow>
+			<OnEvent>
+				if (BattleHerald_IsEOTSActive()) then
+					BattleHerald_EOTSEvent(self, event);
+				end
+			</OnEvent>
+		</Scripts>
+	</Frame>
+	<Frame name="BattleHerald_BFGWorldFrame" parent="UIParent" hidden="true" inherits="BattleHerald_BGTemplate" enableKeyboard="false" enableMouse="false">
+		<Size x="170" y="100"/>
+		<Anchors>
+			<Anchor point="TOP">
+				<Offset x="0" y="12"/>
+			</Anchor>
+		</Anchors>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="$parent_AllianceIcon" file="Interface\PVPFrame\PVPCurrency-Conquest-Alliance.blp">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT">
+							<Offset x="-4" y="29"/>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<Texture name="$parent_HordeIcon" file="Interface\PVPFrame\PVPCurrency-Conquest-Horde.blp">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT">
+							<Offset x="-0" y="29"/>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString name="$parent_VSText" inherits="GameFontHighlightLarge" justifyH="CENTER" text="VS.">
+					<Anchors>
+						<Anchor point="BOTTOM">
+							<Offset x="0" y="57"/>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parent_GoalText" inherits="GameFontHighlightSmall" justifyH="CENTER" text="First to 2000">
+					<Anchors>
+						<Anchor point="TOP" relativeTo="$parent_VSText" relativePoint="BOTTOM"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		
+		<Frames>
+			<Button name="$parent_POILighthouse" inherits="BattleHerald_POIButton">
+				<Anchors>
+					<Anchor point="BOTTOM">
+						<Offset x="-24" y="16"/>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="$parent_POIWaterworks" inherits="BattleHerald_POIButton">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parent_POILighthouse" relativePoint="RIGHT">
+						<Offset x="4" y="0"/>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="$parent_POIMines" inherits="BattleHerald_POIButton">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parent_POIWaterworks" relativePoint="RIGHT">
+						<Offset x="4" y="0"/>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Frame name="$parent_AllianceFrame" inherits="BattleHerald_BGTemplate">
+				<Size x="74" y="42"/>
+				<Anchors>
+					<Anchor point="RIGHT" relativePoint="LEFT">
+						<Offset x="11" y="8"/>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString name="$parent_Text"  inherits="GameFontHighlightLarge" justifyH="CENTER" text="2000">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+			<Frame name="$parent_HordeFrame" inherits="BattleHerald_BGTemplate">
+				<Size x="74" y="42"/>
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT">
+						<Offset x="-11" y="8"/>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString name="$parent_Text"  inherits="GameFontHighlightLarge" justifyH="CENTER" text="1600">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+		</Frames>
+		
+		<Scripts>
+			<OnLoad>
+				BattleHerald_BFGWorldFrame_POILighthouse.watch = BHSTR_LIGHTHOUSE;
+				BattleHerald_BFGWorldFrame_POIWaterworks.watch = BHSTR_WATERWORKS;
+				BattleHerald_BFGWorldFrame_POIMines.watch = BHSTR_MINES;
+
+				self:RegisterEvent("UPDATE_WORLD_STATES");
+			</OnLoad>
+			<OnShow>
+				self:RegisterForDrag("LeftButton");
+				BattleHerald_BFGEvent(self, "UPDATE_WORLD_STATES");
+			</OnShow>
+			<OnEvent>
+				if (BattleHerald_IsBFGActive()) then
+					BattleHerald_BFGEvent(self, event);
+				end
+			</OnEvent>
+		</Scripts>
+	</Frame>
+	<Frame name="BattleHerald_AVWorldFrame" parent="UIParent" hidden="true" inherits="BattleHerald_BGTemplate" enableKeyboard="false" enableMouse="false">
+		<Size x="170" y="100"/>
+		<Anchors>
+			<Anchor point="TOP">
+				<Offset x="0" y="12"/>
+			</Anchor>
+		</Anchors>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="$parent_AllianceIcon" file="Interface\PVPFrame\PVPCurrency-Conquest-Alliance.blp">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT">
+							<Offset x="-4" y="29"/>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<Texture name="$parent_HordeIcon" file="Interface\PVPFrame\PVPCurrency-Conquest-Horde.blp">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT">
+							<Offset x="-0" y="29"/>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString name="$parent_VSText" inherits="GameFontHighlightLarge" justifyH="CENTER" text="VS.">
+					<Anchors>
+						<Anchor point="BOTTOM">
+							<Offset x="0" y="57"/>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parent_GoalText" inherits="GameFontHighlightSmall" justifyH="CENTER" text="Kill all |n reinforcements">
+					<Anchors>
+						<Anchor point="TOP" relativeTo="$parent_VSText" relativePoint="BOTTOM"/>
+					</Anchors>
+				</FontString>
+				<Texture name="$parent_AllianceTowersIcon" file="Interface\Minimap\POIIcons.blp">
+					<Size x="16" y="16"/>
+					<Anchors>
+						<Anchor point="BOTTOM">
+							<Offset x="-50.5" y="16"/>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0.77734375" right="0.84375" top="0.00390625" bottom="0.0703125"/>
+				</Texture>
+				<FontString name="$parent_AllianceTowersText" inherits="GameFontHighlightSmall" justifyH="CENTER">
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parent_AllianceTowersIcon" relativePoint="RIGHT"/>
+					</Anchors>
+				</FontString>
+				<Texture name="$parent_HordeTowersIcon" file="Interface\Minimap\POIIcons.blp">
+					<Size x="16" y="16"/>
+					<Anchors>
+						<Anchor point="BOTTOM">
+							<Offset x="38.5" y="16"/>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0.70703125" right="0.7734375" top="0.00390625" bottom="0.0703125"/>
+				</Texture>
+				<FontString name="$parent_HordeTowersText" inherits="GameFontHighlightSmall" justifyH="CENTER">
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parent_HordeTowersIcon" relativePoint="RIGHT"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		
+		<Frames>
+			<Frame name="$parent_AllianceFrame" inherits="BattleHerald_BGTemplate">
+				<Size x="74" y="42"/>
+				<Anchors>
+					<Anchor point="RIGHT" relativePoint="LEFT">
+						<Offset x="11" y="8"/>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString name="$parent_Text"  inherits="GameFontHighlightLarge" justifyH="CENTER" text="1600">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+			<Frame name="$parent_HordeFrame" inherits="BattleHerald_BGTemplate">
+				<Size x="74" y="42"/>
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT">
+						<Offset x="-11" y="8"/>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString name="$parent_Text"  inherits="GameFontHighlightLarge" justifyH="CENTER" text="1600">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+		</Frames>
+		
+		<Scripts>
+			<OnLoad>
+				self:RegisterEvent("UPDATE_WORLD_STATES");
+				self:RegisterEvent("WORLD_MAP_UPDATE");
+			</OnLoad>
+			<OnShow>
+				self:RegisterForDrag("LeftButton");
+				BattleHerald_AVEvent(self, "UPDATE_WORLD_STATES");
+			</OnShow>
+			<OnEvent>
+				if (BattleHerald_IsAVActive()) then
+					BattleHerald_AVEvent(self, event);
+				end
+			</OnEvent>
+		</Scripts>
+	</Frame>
+	
+	<Frame name="BattleHerald_ICWorldFrame" parent="UIParent" hidden="true" inherits="BattleHerald_BGTemplate" enableKeyboard="false" enableMouse="false">
+		<Size x="170" y="100"/>
+		<Anchors>
+			<Anchor point="TOP">
+				<Offset x="0" y="12"/>
+			</Anchor>
+		</Anchors>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="$parent_AllianceIcon" file="Interface\PVPFrame\PVPCurrency-Conquest-Alliance.blp">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT">
+							<Offset x="-4" y="29"/>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<Texture name="$parent_HordeIcon" file="Interface\PVPFrame\PVPCurrency-Conquest-Horde.blp">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT">
+							<Offset x="-0" y="29"/>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString name="$parent_VSText" inherits="GameFontHighlightLarge" justifyH="CENTER" text="VS.">
+					<Anchors>
+						<Anchor point="BOTTOM">
+							<Offset x="0" y="57"/>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parent_GoalText" inherits="GameFontHighlightSmall" justifyH="CENTER" text="Kill all|nreinforcements">
+					<Anchors>
+						<Anchor point="TOP" relativeTo="$parent_VSText" relativePoint="BOTTOM"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		
+		<Frames>
+			<Button name="$parent_POIQuarry" inherits="BattleHerald_POIButton">
+				<Anchors>
+					<Anchor point="BOTTOM">
+						<Offset x="-40" y="16"/>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="$parent_POIHangar" inherits="BattleHerald_POIButton">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parent_POIQuarry" relativePoint="RIGHT">
+						<Offset x="4" y="0"/>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="$parent_POIWorkshop" inherits="BattleHerald_POIButton">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parent_POIHangar" relativePoint="RIGHT">
+						<Offset x="4" y="0"/>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="$parent_POIDocks" inherits="BattleHerald_POIButton">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parent_POIWorkshop" relativePoint="RIGHT">
+						<Offset x="4" y="0"/>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="$parent_POIRefinery" inherits="BattleHerald_POIButton">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parent_POIDocks" relativePoint="RIGHT">
+						<Offset x="4" y="0"/>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Frame name="$parent_AllianceFrame" inherits="BattleHerald_BGTemplate">
+				<Size x="74" y="42"/>
+				<Anchors>
+					<Anchor point="RIGHT" relativePoint="LEFT">
+						<Offset x="11" y="8"/>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString name="$parent_Text"  inherits="GameFontHighlightLarge" justifyH="CENTER" text="1600">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+			<Frame name="$parent_HordeFrame" inherits="BattleHerald_BGTemplate">
+				<Size x="74" y="42"/>
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT">
+						<Offset x="-11" y="8"/>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString name="$parent_Text"  inherits="GameFontHighlightLarge" justifyH="CENTER" text="1600">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+		</Frames>
+		
+		<Scripts>
+			<OnLoad>
+				BattleHerald_ICWorldFrame_POIQuarry.watch = BHSTR_QUARRY;
+				BattleHerald_ICWorldFrame_POIHangar.watch = BHSTR_HANGAR;
+				BattleHerald_ICWorldFrame_POIWorkshop.watch = BHSTR_WORKSHOP;
+				BattleHerald_ICWorldFrame_POIDocks.watch = BHSTR_DOCKS;
+				BattleHerald_ICWorldFrame_POIRefinery.watch = BHSTR_REFINERY;
+			
+				self:RegisterEvent("UPDATE_WORLD_STATES");
+			</OnLoad>
+			<OnShow>
+				self:RegisterForDrag("LeftButton");
+				BattleHerald_ICEvent(self, "UPDATE_WORLD_STATES");
+			</OnShow>
+			<OnEvent>
+				if (BattleHerald_IsICActive()) then
+					BattleHerald_ICEvent(self, event);
+				end
+			</OnEvent>
+		</Scripts>
+	</Frame>
+	
+	<Frame name="BattleHerald_WorldStateManager">
+		<Scripts>
+			<OnLoad>
+				self:RegisterEvent("PLAYER_ENTERING_WORLD");
+				self:RegisterEvent("PLAYER_ENTERING_BATTLEGROUND");
+				self:RegisterEvent("VARIABLES_LOADED");
+				-- Register for scale update
+				BattleHerald_RegisterOptionHandler("Battleground UI", "WORLD_FRAME_SCALE", BattleHerald_UpdateWorldFrameScale);
+			</OnLoad>
+			<OnEvent>
+				if (event == "VARIABLES_LOADED") then
+					local scale = BattleHerald_GetUserOption("WORLD_FRAME_SCALE");
+					if (scale) then
+						BattleHerald_UpdateWorldFrameScale("WORLD_FRAME_SCALE", scale);
+					end
+					return;
+				end
+			
+				if (BattleHerald_IsCTFActive()) then
+					BattleHerald_SwitchWorldStateFrame("CTF");
+				elseif (BattleHerald_IsEOTSActive()) then
+					BattleHerald_SwitchWorldStateFrame("EOTS");
+				elseif (BattleHerald_IsABActive()) then
+					BattleHerald_SwitchWorldStateFrame("AB");
+				elseif (BattleHerald_IsBFGActive()) then
+					BattleHerald_SwitchWorldStateFrame("BFG");
+				elseif (BattleHerald_IsAVActive()) then
+					BattleHerald_SwitchWorldStateFrame("AV");
+				elseif (BattleHerald_IsICActive()) then
+					BattleHerald_SwitchWorldStateFrame("IC");
+				else
+					BattleHerald_SwitchWorldStateFrame("OFF");
+				end
+			</OnEvent>
+		</Scripts>
+	</Frame>
+	
+</Ui>

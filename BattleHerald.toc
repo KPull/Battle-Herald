@@ -1,0 +1,15 @@
+##Interface: 40200
+##Name: Battle Herald
+##Notes: Battle Herald adds a number of features to enhance your battleground/PvP experience.
+##SavedVariables: BattleHerald_UserOptions
+##Version: 1.04
+##Author: Klishu
+BattleHerald_Strings.lua
+BattleHerald_SlashCommands.lua
+BattleHerald_Main.xml
+TextAlerts\BattleHerald_TextEngine.xml
+SoundAlerts\BattleHerald_SoundEngine.xml
+BattleHerald_TriggerList.lua
+BattleHerald_TriggerSystem.lua
+WorldFrames\BattleHerald_WorldFrame.xml
+ScoreAlerts\BattleHerald_ScoreAlerts.lua

@@ -1,0 +1,135 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+    <Script file="BattleHerald_TextEngine.lua"/>
+
+    <Frame name="BattleHerald_TextAlertContainerTemplate" virtual="true" enableMouse="false" enableKeyboard="false" hidden="true">
+        <Size x="1024" y="16"/>
+        <Layers>
+            <Layer level="ARTWORK">
+                <FontString name="$parent_Text" inherits="GameFontNormalLarge" justifyH="CENTER" justifyV="MIDDLE">
+                    <Anchors>
+                        <Anchor point="CENTER"/>
+                    </Anchors>
+                </FontString>
+                <Texture name="$parent_LeftIcon">
+                    <Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="RIGHT" relativeTo="$parent_Text" relativePoint="LEFT">
+							<Offset>
+								<AbsDimension x="-3" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+                </Texture>
+                <Texture name="$parent_RightIcon">
+                    <Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parent_Text" relativePoint="RIGHT">
+							<Offset>
+								<AbsDimension x="3" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+                </Texture>
+            </Layer>
+        </Layers>
+        <Animations>
+            <AnimationGroup parentKey="typewriter">
+                <!-- Used only by the bottom-most Slot -->
+                <!-- Whenever there's new text to display, set the duration of this animation
+                     depending on the length of the new text -->
+                <Animation name="$parent_TypewriterAnim" parentKey="anim" duration="1.0" endDelay="1.0" order="1">
+                    <Scripts>
+                        <OnUpdate>
+                            BattleHerald_TypewriterAnimationUpdate(self, arg1);
+                        </OnUpdate>
+                        <OnFinished>
+                            BattleHerald_TypewriterAnimationFinished(self);
+                        </OnFinished>
+                     </Scripts>
+                </Animation>
+            </AnimationGroup>
+            <AnimationGroup parentKey="rise">
+                <Translation parentKey="anim" duration="0.45" offsetX="0" offsetY="22">
+					<Scripts>
+						<OnPlay>
+							self:GetRegionParent().line = self:GetRegionParent().line + 1;
+							
+							-- If the line is at the top. Start fading it too.
+							if (self:GetRegionParent().line >= BH_NUM_MAX_TEXT_SLOTS) then
+								self:GetRegionParent().fade:Play();
+							end
+						</OnPlay>
+						<OnFinished>
+							-- Update the position of this container
+							local container = self:GetRegionParent();
+							local point, relativeTo, relativePoint, xOfs, yOfs = container:GetPoint(1);
+							container:ClearAllPoints();
+
+							container:SetPoint("BOTTOM", container:GetParent(), "BOTTOM", 0, yOfs + 22);
+						</OnFinished>
+					</Scripts>
+				</Translation>
+            </AnimationGroup>
+            <AnimationGroup parentKey="fade">
+                <Alpha parentKey="anim" duration="0.15" change="-1.0">
+					<Scripts>
+						<OnFinished>
+							self:GetRegionParent():Hide();
+						</OnFinished>
+					</Scripts>
+				</Alpha>
+            </AnimationGroup>
+        </Animations>
+        <Scripts>
+            <OnShow>
+				self.elapsed = 0;
+				self.typewriter:Stop();
+				self.rise:Stop();
+				self.fade:Stop();
+                self.typewriter:Play();
+            </OnShow>
+			<OnUpdate>
+				self.elapsed = self.elapsed + elapsed;
+				
+				if (self.elapsed >= BH_TEXT_CONTAINER_TIMEOUT and not self.fade:IsPlaying()) then
+					self.fade:Play();
+				end
+			</OnUpdate>
+        </Scripts>
+    </Frame>
+
+    <Frame name="BattleHerald_TextEngine" parent="UIParent" enableMouse="false" enableKeyboard="false">
+        <Size x="1024" y="128"/>
+        <Anchors>
+            <Anchor point="CENTER">
+                <Offset>
+                    <AbsDimension x="0" y="180"/>
+                </Offset>
+            </Anchor>
+        </Anchors>
+        <Frames>
+            <Frame name="BattleHerald_TextAlertContainer0" inherits="BattleHerald_TextAlertContainerTemplate" id="0"/>
+            <Frame name="BattleHerald_TextAlertContainer1" inherits="BattleHerald_TextAlertContainerTemplate" id="1"/>
+            <Frame name="BattleHerald_TextAlertContainer2" inherits="BattleHerald_TextAlertContainerTemplate" id="2"/>
+            <Frame name="BattleHerald_TextAlertContainer3" inherits="BattleHerald_TextAlertContainerTemplate" id="3"/>                        
+        </Frames>
+		<Scripts>
+			<OnLoad>self:RegisterEvent("PLAYER_ENTERING_WORLD"); self:RegisterEvent("PLAYER_ENTERING_BATTLEGROUND"); self:RegisterEvent("ZONE_CHANGED_NEW_AREA"); self:RegisterEvent("ZONE_CHANGED");</OnLoad>
+			<OnEvent>
+				if (BattleHerald_IsInBattlefield()) then
+					RaidBossEmoteFrame:UnregisterEvent("RAID_BOSS_WHISPER");
+					RaidBossEmoteFrame:UnregisterEvent("RAID_BOSS_EMOTE");
+					RaidBossEmoteFrame:UnregisterEvent("CHAT_MSG_RAID_BOSS_EMOTE");
+					RaidBossEmoteFrame:UnregisterEvent("CHAT_MSG_RAID_BOSS_WHISPER");
+				else
+					RaidBossEmoteFrame:RegisterEvent("RAID_BOSS_WHISPER");
+					RaidBossEmoteFrame:RegisterEvent("RAID_BOSS_EMOTE");
+					RaidBossEmoteFrame:RegisterEvent("CHAT_MSG_RAID_BOSS_EMOTE");
+					RaidBossEmoteFrame:RegisterEvent("CHAT_MSG_RAID_BOSS_WHISPER");
+				end
+			</OnEvent>
+		</Scripts>
+    </Frame>
+
+</Ui>

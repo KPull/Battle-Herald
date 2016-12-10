@@ -1,0 +1,14 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+<Script file="BattleHerald_TriggerList.lua"/>
+<Script file="BattleHerald_TriggerSystem.lua"/>
+
+<Frame name="BattleHerald_TriggerSystem">
+	<Scripts>
+		<OnLoad>BattleHerald_TriggerSystemLoad();</OnLoad>
+		<OnEvent>BattleHerald_TriggerSystemEvent(event, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);</OnEvent>
+	</Scripts>
+</Frame>
+
+</Ui>
